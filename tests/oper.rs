@@ -16,7 +16,8 @@ use defmac::defmac;
 use num_traits::Num;
 use num_traits::Zero;
 
-fn test_oper(op: &str, a: &[f32], b: &[f32], c: &[f32]) {
+fn test_oper(op: &str, a: &[f32], b: &[f32], c: &[f32])
+{
     let aa = CowArray::from(arr1(a));
     let bb = CowArray::from(arr1(b));
     let cc = CowArray::from(arr1(c));
@@ -34,8 +35,7 @@ fn test_oper(op: &str, a: &[f32], b: &[f32], c: &[f32]) {
 }
 
 fn test_oper_arr<D>(op: &str, mut aa: CowArray<f32, D>, bb: CowArray<f32, D>, cc: CowArray<f32, D>)
-where
-    D: Dimension,
+where D: Dimension
 {
     match op {
         "+" => {
@@ -72,7 +72,8 @@ where
 }
 
 #[test]
-fn operations() {
+fn operations()
+{
     test_oper("+", &[1.0, 2.0, 3.0, 4.0], &[0.0, 1.0, 2.0, 3.0], &[1.0, 3.0, 5.0, 7.0]);
     test_oper("-", &[1.0, 2.0, 3.0, 4.0], &[0.0, 1.0, 2.0, 3.0], &[1.0, 1.0, 1.0, 1.0]);
     test_oper("*", &[1.0, 2.0, 3.0, 4.0], &[0.0, 1.0, 2.0, 3.0], &[0.0, 2.0, 6.0, 12.0]);
@@ -82,7 +83,8 @@ fn operations() {
 }
 
 #[test]
-fn scalar_operations() {
+fn scalar_operations()
+{
     let a = arr0::<f32>(1.);
     let b = rcarr1::<f32>(&[1., 1.]);
     let c = rcarr2(&[[1., 1.], [1., 1.]]);
@@ -128,7 +130,8 @@ where
 }
 
 #[test]
-fn dot_product() {
+fn dot_product()
+{
     let a = Array::from_iter((0..69).map(|x| x as f32));
     let b = &a * 2. - 7.;
     let dot = 197846.;
@@ -164,7 +167,8 @@ fn dot_product() {
 
 // test that we can dot product with a broadcast array
 #[test]
-fn dot_product_0() {
+fn dot_product_0()
+{
     let a = Array::from_iter((0..69).map(|x| x as f32));
     let x = 1.5;
     let b = aview0(&x);
@@ -184,7 +188,8 @@ fn dot_product_0() {
 }
 
 #[test]
-fn dot_product_neg_stride() {
+fn dot_product_neg_stride()
+{
     // test that we can dot with negative stride
     let a = Array::from_iter((0..69).map(|x| x as f32));
     let b = &a * 2. - 7.;
@@ -203,7 +208,8 @@ fn dot_product_neg_stride() {
 }
 
 #[test]
-fn fold_and_sum() {
+fn fold_and_sum()
+{
     let a = Array::from_iter((0..128).map(|x| x as f32))
         .into_shape_with_order((8, 16))
         .unwrap();
@@ -244,7 +250,8 @@ fn fold_and_sum() {
 }
 
 #[test]
-fn product() {
+fn product()
+{
     let step = (2. - 0.5) / 127.;
     let a = Array::from_iter((0..128).map(|i| 0.5 + step * (i as f64)))
         .into_shape_with_order((8, 16))
@@ -266,16 +273,19 @@ fn product() {
     }
 }
 
-fn range_mat<A: Num + Copy>(m: Ix, n: Ix) -> Array2<A> {
+fn range_mat<A: Num + Copy>(m: Ix, n: Ix) -> Array2<A>
+{
     ArrayBuilder::new((m, n)).build()
 }
 
 #[cfg(feature = "approx")]
-fn range1_mat64(m: Ix) -> Array1<f64> {
+fn range1_mat64(m: Ix) -> Array1<f64>
+{
     ArrayBuilder::new(m).build()
 }
 
-fn range_i32(m: Ix, n: Ix) -> Array2<i32> {
+fn range_i32(m: Ix, n: Ix) -> Array2<i32>
+{
     ArrayBuilder::new((m, n)).build()
 }
 
@@ -310,7 +320,8 @@ where
 }
 
 #[test]
-fn mat_mul() {
+fn mat_mul()
+{
     let (m, n, k) = (8, 8, 8);
     let a = range_mat::<f32>(m, n);
     let b = range_mat::<f32>(n, k);
@@ -372,7 +383,8 @@ fn mat_mul() {
 // Check that matrix multiplication of contiguous matrices returns a
 // matrix with the same order
 #[test]
-fn mat_mul_order() {
+fn mat_mul_order()
+{
     let (m, n, k) = (8, 8, 8);
     let a = range_mat::<f32>(m, n);
     let b = range_mat::<f32>(n, k);
@@ -391,7 +403,8 @@ fn mat_mul_order() {
 // test matrix multiplication shape mismatch
 #[test]
 #[should_panic]
-fn mat_mul_shape_mismatch() {
+fn mat_mul_shape_mismatch()
+{
     let (m, k, k2, n) = (8, 8, 9, 8);
     let a = range_mat::<f32>(m, k);
     let b = range_mat::<f32>(k2, n);
@@ -401,7 +414,8 @@ fn mat_mul_shape_mismatch() {
 // test matrix multiplication shape mismatch
 #[test]
 #[should_panic]
-fn mat_mul_shape_mismatch_2() {
+fn mat_mul_shape_mismatch_2()
+{
     let (m, k, k2, n) = (8, 8, 8, 8);
     let a = range_mat::<f32>(m, k);
     let b = range_mat::<f32>(k2, n);
@@ -412,7 +426,8 @@ fn mat_mul_shape_mismatch_2() {
 // Check that matrix multiplication
 // supports broadcast arrays.
 #[test]
-fn mat_mul_broadcast() {
+fn mat_mul_broadcast()
+{
     let (m, n, k) = (16, 16, 16);
     let a = range_mat::<f32>(m, n);
     let x1 = 1.;
@@ -431,7 +446,8 @@ fn mat_mul_broadcast() {
 
 // Check that matrix multiplication supports reversed axes
 #[test]
-fn mat_mul_rev() {
+fn mat_mul_rev()
+{
     let (m, n, k) = (16, 16, 16);
     let a = range_mat::<f32>(m, n);
     let b = range_mat::<f32>(n, k);
@@ -447,7 +463,8 @@ fn mat_mul_rev() {
 
 // Check that matrix multiplication supports arrays with zero rows or columns
 #[test]
-fn mat_mut_zero_len() {
+fn mat_mut_zero_len()
+{
     defmac!(mat_mul_zero_len range_mat_fn => {
         for n in 0..4 {
             for m in 0..4 {
@@ -468,7 +485,8 @@ fn mat_mut_zero_len() {
 }
 
 #[test]
-fn scaled_add() {
+fn scaled_add()
+{
     let a = range_mat(16, 15);
     let mut b = range_mat(16, 15);
     b.mapv_inplace(f32::exp);
@@ -484,7 +502,8 @@ fn scaled_add() {
 #[cfg(feature = "approx")]
 #[cfg_attr(miri, ignore)] // Very slow on CI/CD machines
 #[test]
-fn scaled_add_2() {
+fn scaled_add_2()
+{
     let beta = -2.3;
     let sizes = vec![
         (4, 4, 1, 4),
@@ -522,7 +541,8 @@ fn scaled_add_2() {
 #[cfg(feature = "approx")]
 #[cfg_attr(miri, ignore)] // Very slow on CI/CD machines
 #[test]
-fn scaled_add_3() {
+fn scaled_add_3()
+{
     use approx::assert_relative_eq;
     use ndarray::{Slice, SliceInfo, SliceInfoElem};
     use std::convert::TryFrom;
@@ -549,7 +569,10 @@ fn scaled_add_3() {
                 let cslice: Vec<SliceInfoElem> = if n == 1 {
                     vec![Slice::from(..).step_by(s2).into()]
                 } else {
-                    vec![Slice::from(..).step_by(s1).into(), Slice::from(..).step_by(s2).into()]
+                    vec![
+                        Slice::from(..).step_by(s1).into(),
+                        Slice::from(..).step_by(s2).into(),
+                    ]
                 };
 
                 let c = range_mat::<f64>(n, q).into_shape_with_order(cdim).unwrap();
@@ -571,7 +594,8 @@ fn scaled_add_3() {
 #[cfg(feature = "approx")]
 #[cfg_attr(miri, ignore)]
 #[test]
-fn gen_mat_mul() {
+fn gen_mat_mul()
+{
     use core::f64;
 
     let alpha = -2.3;
@@ -615,7 +639,8 @@ fn gen_mat_mul() {
 // Test y = A x where A is f-order
 #[cfg(feature = "approx")]
 #[test]
-fn gemm_64_1_f() {
+fn gemm_64_1_f()
+{
     let a = range_mat::<f64>(64, 64).reversed_axes();
     let (m, n) = a.dim();
     // m x n  times n x 1  == m x 1
@@ -627,7 +652,8 @@ fn gemm_64_1_f() {
 }
 
 #[test]
-fn gen_mat_mul_i32() {
+fn gen_mat_mul_i32()
+{
     let alpha = -1;
     let beta = 2;
     let sizes = if cfg!(miri) {
@@ -659,7 +685,8 @@ fn gen_mat_mul_i32() {
 #[cfg(feature = "approx")]
 #[test]
 #[cfg_attr(miri, ignore)] // Takes too long
-fn gen_mat_vec_mul() {
+fn gen_mat_vec_mul()
+{
     use core::f64;
 
     use approx::assert_relative_eq;
@@ -685,7 +712,17 @@ fn gen_mat_vec_mul() {
 
     let alpha = -2.3;
     let beta = f64::consts::PI;
-    let sizes = vec![(4, 4), (8, 8), (17, 15), (4, 17), (17, 3), (19, 18), (16, 17), (15, 16), (67, 63)];
+    let sizes = vec![
+        (4, 4),
+        (8, 8),
+        (17, 15),
+        (4, 17),
+        (17, 3),
+        (19, 18),
+        (16, 17),
+        (15, 16),
+        (67, 63),
+    ];
     // test different strides
     for &s1 in &[1, 2, -1, -2] {
         for &s2 in &[1, 2, -1, -2] {
@@ -717,7 +754,8 @@ fn gen_mat_vec_mul() {
 #[cfg(feature = "approx")]
 #[cfg_attr(miri, ignore)] // Very slow on CI/CD machines
 #[test]
-fn vec_mat_mul() {
+fn vec_mat_mul()
+{
     use approx::assert_relative_eq;
 
     // simple, slow, correct (hopefully) mat mul
@@ -738,7 +776,17 @@ fn vec_mat_mul() {
         .unwrap()
     }
 
-    let sizes = vec![(4, 4), (8, 8), (17, 15), (4, 17), (17, 3), (19, 18), (16, 17), (15, 16), (67, 63)];
+    let sizes = vec![
+        (4, 4),
+        (8, 8),
+        (17, 15),
+        (4, 17),
+        (17, 3),
+        (19, 18),
+        (16, 17),
+        (15, 16),
+        (67, 63),
+    ];
     // test different strides
     for &s1 in &[1, 2, -1, -2] {
         for &s2 in &[1, 2, -1, -2] {
@@ -767,33 +815,52 @@ fn vec_mat_mul() {
 }
 
 #[test]
-fn kron_square_f64() {
+fn kron_square_f64()
+{
     let a = arr2(&[[1.0, 0.0], [0.0, 1.0]]);
     let b = arr2(&[[0.0, 1.0], [1.0, 0.0]]);
 
     assert_eq!(
         kron(&a, &b),
-        arr2(&[[0.0, 1.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0]]),
+        arr2(&[
+            [0.0, 1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0, 0.0]
+        ]),
     );
 
     assert_eq!(
         kron(&b, &a),
-        arr2(&[[0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0], [1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]]),
+        arr2(&[
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0]
+        ]),
     )
 }
 
 #[test]
-fn kron_square_i64() {
+fn kron_square_i64()
+{
     let a = arr2(&[[1, 0], [0, 1]]);
     let b = arr2(&[[0, 1], [1, 0]]);
 
-    assert_eq!(kron(&a, &b), arr2(&[[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]),);
+    assert_eq!(
+        kron(&a, &b),
+        arr2(&[[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]),
+    );
 
-    assert_eq!(kron(&b, &a), arr2(&[[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]]),)
+    assert_eq!(
+        kron(&b, &a),
+        arr2(&[[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]]),
+    )
 }
 
 #[test]
-fn kron_i64() {
+fn kron_i64()
+{
     let a = arr2(&[[1, 0]]);
     let b = arr2(&[[0, 1], [1, 0]]);
     let r = arr2(&[[0, 1, 0, 0], [1, 0, 0, 0]]);
@@ -831,7 +898,8 @@ where
 }
 
 #[test]
-fn dot_3d_by_2d() {
+fn dot_3d_by_2d()
+{
     let lhs: Array3<f64> = ArrayBuilder::new((3, 4, 5)).build();
     let rhs: Array2<f64> = ArrayBuilder::new((5, 6)).build();
 
@@ -843,7 +911,8 @@ fn dot_3d_by_2d() {
 }
 
 #[test]
-fn dot_3d_by_2d_non_contiguous() {
+fn dot_3d_by_2d_non_contiguous()
+{
     // Slice with stride 2 to get a non-contiguous layout.
     let base: Array3<f64> = ArrayBuilder::new((6, 4, 5)).build();
     let lhs = base.slice(s![..;2, .., ..]).to_owned();
@@ -857,7 +926,8 @@ fn dot_3d_by_2d_non_contiguous() {
 }
 
 #[test]
-fn dot_3d_by_2d_integer() {
+fn dot_3d_by_2d_integer()
+{
     let lhs: Array3<i32> = ArrayBuilder::new((2, 3, 4)).build();
     let rhs: Array2<i32> = ArrayBuilder::new((4, 5)).build();
 
@@ -870,14 +940,16 @@ fn dot_3d_by_2d_integer() {
 
 #[test]
 #[should_panic(expected = "not compatible for matrix multiplication")]
-fn dot_3d_by_2d_shape_mismatch() {
+fn dot_3d_by_2d_shape_mismatch()
+{
     let lhs: Array3<f64> = Array3::zeros((3, 4, 5));
     let rhs: Array2<f64> = Array2::zeros((6, 7));
     let _ = lhs.dot(&rhs);
 }
 
 #[test]
-fn dot_4d_by_2d() {
+fn dot_4d_by_2d()
+{
     let lhs: Array4<f64> = ArrayBuilder::new((2, 3, 4, 5)).build();
     let rhs: Array2<f64> = ArrayBuilder::new((5, 6)).build();
 
@@ -890,7 +962,8 @@ fn dot_4d_by_2d() {
 
 // The shapes here match the NumPy example from issue #1587.
 #[test]
-fn dot_5d_by_2d() {
+fn dot_5d_by_2d()
+{
     let lhs: Array5<f64> =
         Array5::from_shape_vec((3, 2, 5, 9, 12), (0..3 * 2 * 5 * 9 * 12).map(|x| x as f64).collect()).unwrap();
     let rhs: Array2<f64> = Array2::from_shape_vec((12, 13), (0..12 * 13).map(|x| x as f64).collect()).unwrap();
@@ -903,7 +976,8 @@ fn dot_5d_by_2d() {
 }
 
 #[test]
-fn dot_6d_by_2d() {
+fn dot_6d_by_2d()
+{
     let lhs: Array6<f64> =
         Array6::from_shape_vec((2, 2, 2, 2, 2, 3), (0..2usize.pow(5) * 3).map(|x| x as f64).collect()).unwrap();
     let rhs: Array2<f64> = Array2::from_shape_vec((3, 4), (0..12).map(|x| x as f64).collect()).unwrap();
@@ -916,7 +990,8 @@ fn dot_6d_by_2d() {
 }
 
 #[test]
-fn dot_dyn_3d_by_2d() {
+fn dot_dyn_3d_by_2d()
+{
     let lhs: ArrayD<f64> = ArrayD::from_shape_vec(IxDyn(&[3, 4, 5]), (0..60).map(|x| x as f64).collect()).unwrap();
     let rhs: Array2<f64> = ArrayBuilder::new((5, 6)).build();
 
@@ -929,7 +1004,8 @@ fn dot_dyn_3d_by_2d() {
 }
 
 #[test]
-fn dot_dyn_5d_by_2d() {
+fn dot_dyn_5d_by_2d()
+{
     let lhs: ArrayD<f64> =
         ArrayD::from_shape_vec(IxDyn(&[3, 2, 5, 9, 12]), (0..3 * 2 * 5 * 9 * 12).map(|x| x as f64).collect()).unwrap();
     let rhs: Array2<f64> = Array2::from_shape_vec((12, 13), (0..12 * 13).map(|x| x as f64).collect()).unwrap();
@@ -944,7 +1020,8 @@ fn dot_dyn_5d_by_2d() {
 
 #[test]
 #[should_panic(expected = "not compatible for matrix multiplication")]
-fn dot_dyn_shape_mismatch() {
+fn dot_dyn_shape_mismatch()
+{
     let lhs: ArrayD<f64> = ArrayD::zeros(IxDyn(&[3, 4, 5]));
     let rhs: Array2<f64> = Array2::zeros((6, 7));
     let _ = lhs.dot(&rhs);
