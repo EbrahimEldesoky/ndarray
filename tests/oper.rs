@@ -939,7 +939,7 @@ fn dot_3d_by_2d_integer()
 }
 
 #[test]
-#[should_panic(expected = "not compatible for matrix multiplication")]
+#[should_panic(expected = "are not compatible for nd dot")]
 fn dot_3d_by_2d_shape_mismatch()
 {
     let lhs: Array3<f64> = Array3::zeros((3, 4, 5));
@@ -1019,7 +1019,23 @@ fn dot_dyn_5d_by_2d()
 }
 
 #[test]
-#[should_panic(expected = "not compatible for matrix multiplication")]
+fn dot_dyn_3d_by_2d_non_contiguous()
+{
+    // Slice with stride 2 to get a non-contiguous layout.
+    let base: Array3<f64> = ArrayBuilder::new((6, 4, 5)).build();
+    let lhs = base.slice(s![..;2, .., ..]).into_dyn();
+    let rhs: Array2<f64> = ArrayBuilder::new((5, 7)).build();
+
+    let result = lhs.dot(&rhs);
+    assert_eq!(result.shape(), &[3, 4, 7]);
+
+    let lhs_fixed: ArrayView3<f64> = lhs.into_dimensionality::<Ix3>().unwrap();
+    let expected = lhs_fixed.dot(&rhs);
+    assert_eq!(result.into_dimensionality::<Ix3>().unwrap(), expected);
+}
+
+#[test]
+#[should_panic(expected = "are not compatible for nd dot")]
 fn dot_dyn_shape_mismatch()
 {
     let lhs: ArrayD<f64> = ArrayD::zeros(IxDyn(&[3, 4, 5]));
