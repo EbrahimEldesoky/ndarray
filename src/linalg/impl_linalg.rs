@@ -235,7 +235,7 @@ fn nd_dot_non_contiguous<A, S1, S2, S3>(
         // unwrap: converting a 2-D ArrayView/ArrayViewMut to Ix2 always succeeds.
         let lhs_2d = lhs.view().into_dimensionality::<Ix2>().unwrap();
         let mut out_2d = out.view_mut().into_dimensionality::<Ix2>().unwrap();
-        general_mat_mul(A::one(), &*lhs_2d, &*rhs, A::zero(), &mut *out_2d);
+        general_mat_mul(A::one(), &lhs_2d, rhs, A::zero(), &mut out_2d);
     } else {
         Zip::from(lhs.axis_iter(Axis(0)))
             .and(out.axis_iter_mut(Axis(0)))
