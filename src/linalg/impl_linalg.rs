@@ -222,6 +222,29 @@ impl_dots!(Ix1, Ix2);
 impl_dots!(Ix2, Ix1);
 impl_dots!(Ix2, Ix2);
 
+fn nd_dot_non_contiguous<A, S1, S2, S3>(
+    lhs: &ArrayBase<S1, IxDyn>, rhs: &ArrayBase<S2, Ix2>, out: &mut ArrayBase<S3, IxDyn>,
+) where
+    A: LinalgScalar,
+    S1: Data<Elem = A>,
+    S2: Data<Elem = A>,
+    S3: DataMut<Elem = A>,
+{
+    let ndim = lhs.ndim();
+    if ndim == 2 {
+        // unwrap: converting a 2-D ArrayView/ArrayViewMut to Ix2 always succeeds.
+        let lhs_2d = lhs.view().into_dimensionality::<Ix2>().unwrap();
+        let mut out_2d = out.view_mut().into_dimensionality::<Ix2>().unwrap();
+        general_mat_mul(A::one(), &*lhs_2d, &*rhs, A::zero(), &mut *out_2d);
+    } else {
+        Zip::from(lhs.axis_iter(Axis(0)))
+            .and(out.axis_iter_mut(Axis(0)))
+            .for_each(|lhs_slice, mut out_slice| {
+                nd_dot_non_contiguous(&lhs_slice, rhs, &mut out_slice);
+            });
+    }
+}
+
 macro_rules! impl_dot_nd_ix2 {
     ($dim:ty) => {
         impl<A> Dot<ArrayRef<A, Ix2>> for ArrayRef<A, $dim>
@@ -247,8 +270,8 @@ macro_rules! impl_dot_nd_ix2 {
 
                 if self.is_standard_layout() {
                     // C-contiguous: to_shape returns a *view* (no copy of LHS data).
-                    // Safety: rows * k == self.len() by construction.
                     let rows = self.len() / k;
+                    // unwrap: rows * k == self.len() by construction, so reshape always succeeds.
                     let lhs_2d = self.to_shape((rows, k)).unwrap();
                     let result_2d = lhs_2d.dot(rhs);
 
@@ -258,17 +281,19 @@ macro_rules! impl_dot_nd_ix2 {
                     }
                     out_dim[ndim - 1] = n;
 
-                    // result_2d is a fresh C-contiguous owned array;
-                    // into_shape_with_order is free.
+                    // unwrap: result_2d is a fresh C-contiguous owned array of the correct size.
                     result_2d.into_shape_with_order(out_dim).unwrap()
                 } else {
-                    // Non-contiguous: iterate over the first axis so no whole-array
-                    // copy is needed. Each sub-array is (ndim-1)-D; the impl for that
-                    // dimension is already compiled (macro invocations are in order).
-                    let sub_results: Vec<_> =
-                        self.axis_iter(Axis(0)).map(|lane| lane.dot(rhs)).collect();
-                    let views: Vec<_> = sub_results.iter().map(|a| a.view()).collect();
-                    crate::stack(Axis(0), &views).unwrap()
+                    // Non-contiguous: iterate over the first axis and write results directly
+                    // into the pre-allocated output array to avoid whole-array copying.
+                    let mut out_dim = <$dim>::zeros(ndim);
+                    for i in 0..ndim - 1 {
+                        out_dim[i] = self.shape()[i];
+                    }
+                    out_dim[ndim - 1] = n;
+                    let mut out = Array::zeros(out_dim);
+                    nd_dot_non_contiguous(&self.view().into_dyn(), &rhs.view(), &mut out.view_mut().into_dyn());
+                    out
                 }
             }
         }
@@ -305,24 +330,24 @@ where A: LinalgScalar
 
         if self.is_standard_layout() {
             // C-contiguous: to_shape returns a *view* (no copy of LHS data).
-            // Safety: rows * k == self.len() by construction.
             let rows = self.len() / k;
+            // unwrap: rows * k == self.len() by construction, so reshape always succeeds.
             let lhs_2d = self.to_shape((rows, k)).unwrap();
             let result_2d = lhs_2d.dot(rhs);
 
             let mut out_shape = self.shape().to_vec();
             *out_shape.last_mut().unwrap() = n;
 
-            // result_2d is a fresh C-contiguous owned array;
-            // into_shape_with_order is free.
+            // unwrap: result_2d is a fresh C-contiguous owned array of the correct size.
             result_2d.into_shape_with_order(IxDyn(&out_shape)).unwrap()
         } else {
-            // Non-contiguous: iterate over the first axis so no whole-array
-            // copy is needed. Each sub-array is (ndim-1)-D IxDyn; recursion
-            // eventually reaches contiguous 2-D which terminates the recursion.
-            let sub_results: Vec<_> = self.axis_iter(Axis(0)).map(|lane| lane.dot(rhs)).collect();
-            let views: Vec<_> = sub_results.iter().map(|a| a.view()).collect();
-            crate::stack(Axis(0), &views).unwrap()
+            // Non-contiguous: iterate recursively over the first axis and write results
+            // directly into the pre-allocated output array to avoid whole-array copying.
+            let mut out_shape = self.shape().to_vec();
+            *out_shape.last_mut().unwrap() = n;
+            let mut out = Array::zeros(IxDyn(&out_shape));
+            nd_dot_non_contiguous(&self.view(), &rhs.view(), &mut out.view_mut());
+            out
         }
     }
 }
