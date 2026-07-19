@@ -286,10 +286,8 @@ fn nd_dot<A: LinalgScalar>(lhs: &ArrayRef<A, IxDyn>, rhs: &ArrayRef<A, Ix2>) -> 
 
 /// Recursive helper: writes the N-D × 2-D product directly into `out`
 /// using `general_mat_mul` at the 2-D base case.
-fn nd_dot_non_contiguous<A>(
-    lhs: &ArrayRef<A, IxDyn>, rhs: &ArrayRef<A, Ix2>, out: &mut ArrayRef<A, IxDyn>,
-) where
-    A: LinalgScalar,
+fn nd_dot_non_contiguous<A>(lhs: &ArrayRef<A, IxDyn>, rhs: &ArrayRef<A, Ix2>, out: &mut ArrayRef<A, IxDyn>)
+where A: LinalgScalar
 {
     let ndim = lhs.ndim();
     if ndim == 2 {
