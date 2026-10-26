@@ -512,7 +512,7 @@ impl<'a, A, D: Dimension> Iterator for IndexedIter<'a, A, D>
     #[inline]
     fn next(&mut self) -> Option<Self::Item>
     {
-        let index = self.0.inner.index.as_ref()?.clone();
+        let index = self.0.inner.index.clone()?;
         match self.0.next() {
             None => None,
             Some(elem) => Some((index.into_pattern(), elem)),
@@ -692,7 +692,7 @@ impl<'a, A, D: Dimension> Iterator for IndexedIterMut<'a, A, D>
     #[inline]
     fn next(&mut self) -> Option<Self::Item>
     {
-        let index = self.0.inner.index.as_ref()?.clone();
+        let index = self.0.inner.index.clone()?;
         match self.0.next() {
             None => None,
             Some(elem) => Some((index.into_pattern(), elem)),
